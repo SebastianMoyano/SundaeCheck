@@ -106,7 +106,7 @@ def download_chromedriver():
             fullversion = tokens[2]
             tokens = fullversion.split('.')
             version = tokens[0]
-        print("probando")
+
         
         target_name = os.path.join(full_real_path,'bin/chromedriver-linux-'+version)
         print('new chrome driver at ' + target_name)
@@ -114,7 +114,6 @@ def download_chromedriver():
         if not found:
             version_number = get_latestversion(version)
             download_url = "https://chromedriver.storage.googleapis.com/" + version_number +"/chromedriver_mac64.zip"
-            print("ya voy aca")
             download(download_url, os.path.join(full_real_path,'temp/chromedriver'), target_name,full_real_path) 
     print(target_name)
     return target_name
@@ -127,7 +126,8 @@ def Glogin():
     driver =LoginLento()
     num = 1000
 
-  
+    totalAnt = ''
+    linkAnt = ''
     # input Gmail 
     
     while True:
@@ -136,6 +136,7 @@ def Glogin():
         moneda = comboPair.get()
         try:
             link = 'https://exchange.sundaeswap.finance/#/swap?swap_from='+ dic[moneda] + '&swap_to=cardano.ada'
+            print(link)
             driver.get(link) 
             WebDriverWait(driver, 20).until( EC.presence_of_element_located((By.XPATH,'//*[@id="root"]/div[1]/main/div/div/div/div/div[2]/div[3]/div[1]/div[1]/input'))) 
             driver.find_element(By.XPATH,'//*[@id="root"]/div[1]/main/div/div/div/div/div[2]/div[3]/div[1]/div[1]/input').send_keys('1')
@@ -144,16 +145,16 @@ def Glogin():
             val = driver.find_element(By.XPATH,'//*[@id="root"]/div[1]/main/div/div/div/div[1]/div[2]/div[3]/div[3]/div[1]/input')
            
             #
-            print(val.get_attribute('value'))
+    
             num = float(val.get_attribute('value'))
-            
-            total.set("Current Value: "+val.get_attribute('value'))
+            if totalAnt != "Current Value: "+val.get_attribute('value'):   
+                total.set("")  
+                total.set("Current Value: "+val.get_attribute('value'))
             
     
         except Exception as e:
             print(e)
             notify("Error", 'Ocurrio un error al conseguir valores')
-            time.sleep(20)
             break
 
         if text == 'Less than':
@@ -169,7 +170,8 @@ def Glogin():
                 notify(moneda+" Price Change", "Price of "+moneda+" is higher than threshold: "+str(num))
                 total.set("Finish")
                 break
-        time.sleep(6)
+        totalAnt = total.get()
+        time.sleep(3)
 
     driver.quit()
     print('termino')
@@ -191,26 +193,18 @@ def notify(title, text):
 
 
 def LoginLento():
-    print("inicio lento")
-    opt = Options() 
-    #opt.add_experimental_option("detach", True)
-    #opt.add_argument("--disable-infobars")
 
-    opt.add_argument('ignore-certificate-errors')
-    #opt.add_argument("auto-select-desktop-capture-source=Entire screen") 
-    #opt.add_argument("--disable-extensions")
-    #opt.add_argument('--no-sandbox')
-
-    #opt.add_argument("--log-level=3")
-    opt.add_argument('--headless')
-    opt.add_argument('--disable-gpu')
-    # Pass the argument 1 to allow and 2 to block
     
+    opt = Options() 
+    opt.add_argument('ignore-certificate-errors')
+
+    
+    #opt.add_argument('--headless')
+    #opt.add_argument('--disable-gpu')    
     camino = download_chromedriver()
     chrome_service = ChromeService(camino)
     driver = webdriver.Chrome(service=chrome_service,options=opt)
-    #driver = webdriver.Chrome(ChromeDriverManager(print_first_line=False).install(),options=opt)
-    #driver.implicitly_wait(10) 	
+	
     return driver
 
 def relayManual():
@@ -231,7 +225,6 @@ def complete():
     style.theme_use("azure")
 
     root.config(width=300, height=300)
-    entry_var = tk.StringVar()
     entry_var2 = tk.StringVar()
     total = tk.StringVar()
     introduccion1 = tk.StringVar()
@@ -245,9 +238,6 @@ def complete():
     combo = ttk.Combobox(root,state="readonly", values=("Less than","More than"))
     combo.current(0)
     
-
-    # Crear caja de texto.
-    entry = ttk.Entry(root, textvariable=entry_var)
     entry2 = ttk.Entry(root, textvariable=entry_var2)
     botonmanual = ttk.Button(root, text="Start",command= relayManual)
     # Posicionarla en la ventana.
